@@ -2,9 +2,9 @@
 import { EventCenterForMicroApp } from './data'
 import {getCurrentAppName,setCurrentAppName} from './utils'
 import { appInstanceMap } from './app'
-
 const rawWindowAddEventListener = window.addEventListener
 const rawWindowRemoveEventListener = window.removeEventListener
+
 
  function effect (microWindow) {
   const eventListenerMap = new Map()
@@ -49,21 +49,37 @@ function macroTask (fn) {
 }
 
 const rawQuerySelector = Document.prototype.querySelector
+
 Document.prototype.querySelector = function(selectors){
   const appName = getCurrentAppName()
-  if (!appName || selectors === 'head' || selectors === 'body') {
+  const app = appInstanceMap.get(appName)
+  // 是主应用
+  if (!appName) {
     return rawQuerySelector.call(document, selectors)
+  }else{
+    // 是子应用
+    if(selectors === 'head'){
+      selectors = 'micro-app-head'
+    }
+    if(selectors === 'body'){
+      selectors = 'micro-app-body'
+    }
+    // 开启了shadow
+    if(app.shadowDOM){
+      return app?.container?.shadow.querySelector(selectors)
+    }else{
+      return app?.container?.querySelector(selectors)
+    }
   }
-  return appInstanceMap.get(appName)?.container?.querySelector(selectors)
 }
 
 export default class SandBox {
   active = false 
   microWindow = {} 
   injectedKeys = new Set() 
+
   constructor (appName) {
     this.microWindow.microApp = new EventCenterForMicroApp(appName)
-
     this.releaseEffect = effect(this.microWindow)
     
     Object.assign(this.microWindow,{
@@ -88,7 +104,7 @@ export default class SandBox {
         if (typeof rawValue === 'function') {
           const valueStr = rawValue.toString()
           // 排除构造函数
-          // setTimeout 函数xw
+          // setTimeout 函数
           // HTMLIFrameElement 构造函数
           if (!/^function\s+[A-Z]/.test(valueStr) && !/^class\s+/.test(valueStr)) {
             return rawValue.bind(window)
@@ -112,22 +128,28 @@ export default class SandBox {
       },
     })
   }
+
   start () {
     if (!this.active) {
       this.active = true
     }
   }
+
   stop () {
     if (this.active) {
       this.active = false
+
       this.injectedKeys.forEach((key) => {
         Reflect.deleteProperty(this.microWindow, key)
       })
       this.injectedKeys.clear()
+
       this.releaseEffect()
+
       this.microWindow.microApp.clearDataListener()
     }
   }
+
   bindScope (code) {
     window.proxyWindow = this.proxyWindow
     const fn = new Function('proxyWindow',`

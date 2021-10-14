@@ -2,12 +2,12 @@ import loadHtml from './source'
 import Sandbox from './sandbox'
 
 export const appInstanceMap = new Map()
-
 export default class CreateApp {
-  constructor ({ name, url, container }) {
+  constructor ({ name, url, container,shadowDOM }) {
     this.name = name 
     this.url = url  
     this.container = container 
+    this.shadowDOM = shadowDOM
     this.status = 'loading'
     loadHtml(this)
     this.sandbox = new Sandbox(name)
@@ -15,12 +15,14 @@ export default class CreateApp {
 
   status = 'created' 
 
+
   source = {
     links: new Map(), 
     scripts: new Map(), 
   }
 
   onLoad (htmlDom) {
+
     this.loadCount = this.loadCount ? this.loadCount + 1 : 1
     if (this.loadCount === 2 && this.status !== 'unmount') {
       this.source.html = htmlDom
@@ -29,16 +31,24 @@ export default class CreateApp {
   }
 
   mount () {
-    const cloneHtml = this.source.html.cloneNode(true)
+    const cloneHtml = this.source.html.cloneNode(true) 
+
     const fragment = document.createDocumentFragment()
     Array.from(cloneHtml.childNodes).forEach((node) => {
       fragment.appendChild(node)
     })
-    this.container.appendChild(fragment)
+    if(this.shadowDOM){
+      this.container.shadow.appendChild(fragment)
+    }else{
+      this.container.appendChild(fragment)
+    }
+
     this.sandbox.start(this.name)
+
     this.source.scripts.forEach((info) => {
      this.sandbox.bindScope(info.code)
     })
+
     this.status = 'mounted'
   }
 

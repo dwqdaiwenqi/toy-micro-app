@@ -14,15 +14,17 @@ class ToyMicroApp extends HTMLElement {
       name: this.name,
       url: this.url,
       container: this,
+      shadowDOM:this.constructor.shadowDOM
     })
     appInstanceMap.set(this.name, app)
+    if(this.constructor.shadowDOM){
+      this.shadow = this.attachShadow({mode: 'open'});
+    }
   }
-
   disconnectedCallback () {
     const app = appInstanceMap.get(this.name)
     app.unmount(this.hasAttribute('destory'))
   }
-
   attributeChangedCallback (attrName, oldVal, newVal) {
     if (attrName === 'name' && !this.name && newVal) {
       this.name = newVal
@@ -32,8 +34,9 @@ class ToyMicroApp extends HTMLElement {
   }
 }
 
-export function defineElement () {
+export function defineElement (options) {
   if (!window.customElements.get('toy-micro-app')) {
     window.customElements.define('toy-micro-app', ToyMicroApp)
+    ToyMicroApp.shadowDOM= options.shadowDOM
   }
 }
