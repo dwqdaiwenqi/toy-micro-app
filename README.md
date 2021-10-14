@@ -4,7 +4,7 @@
 
 ```js
 // 在 react 中使用
-import ToyMicroApp from './ToyMicroApp'
+import ToyMicroApp from './index'
 
 ToyMicroApp.start()
 // ...
@@ -25,10 +25,14 @@ return(
   </section>
 )
 ```
-特别感谢：https://github.com/micro-zoe/micro-app 项目，本项目是基于 simple-micro-app 开发的，与 simple-micro-app 的差异为：
-* 对 Dom 元素进行了隔离
+不要在生产环境使用！不要在生产环境使用！不要在生产环境使用！
+
+生产环境建议直接移步 [micro-app](https://github.com/micro-zoe/micro-app)
+
+本项目是基于 simple-micro-app 开发的，是 simple-micro-app 的加强版，与simple-micro-app 的差异为：
+* 对 DOM API 进行了劫持，隔离了元素
 * 使用 Function 替代 eval
-* 支持 shadowRoot
+* 支持了 shadowRoot
 
 
 
