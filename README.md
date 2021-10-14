@@ -6,7 +6,9 @@
 // 在 react 中使用
 import ToyMicroApp from './index'
 
-ToyMicroApp.start()
+ToyMicroApp.start({
+  shadowDOM:true // 默认是 false
+})
 // ...
 
 return(
